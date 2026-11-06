@@ -1,0 +1,14 @@
+
+CREATE DATABASE IF NOT EXISTS fittrack;
+
+USE fittrack;
+
+CREATE TABLE IF NOT EXISTS treinos (
+    id INT NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT NULL,
+    categoria VARCHAR(50) NULL,
+    duracao INT NULL,
+    criado_em TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+);
