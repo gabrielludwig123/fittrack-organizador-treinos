@@ -1,11 +1,14 @@
 
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import { buscarTreinos } from '../services/api';
+
 
 const treinos = [
   {
@@ -46,8 +49,30 @@ const treinos = [
   },
 ];
 
+
 export default function TreinosScreen() {
+  const [treinosAPI, setTreinosAPI] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
+
+  useEffect(() => {
+    async function carregarTreinos() {
+      try {
+        const dados = await buscarTreinos();
+        setTreinosAPI(dados);
+      } catch (error) {
+        setErro('Não foi possível carregar os treinos.');
+        console.log('Erro na API:', error);
+      } finally {
+        setCarregando(false);
+      }
+    }
+
+    carregarTreinos();
+  }, []);
+
   return (
+
     <ScrollView style={styles.container}>
       <View style={styles.intro}>
         <Text style={styles.etiqueta}>SUA ROTINA</Text>
@@ -108,6 +133,60 @@ export default function TreinosScreen() {
               </Text>
             </View>
           ))}
+                </View>
+      ))}
+
+      <View style={styles.intro}>
+        <Text style={styles.etiqueta}>
+          BANCO DE DADOS
+        </Text>
+
+        <Text style={styles.titulo}>
+          Treinos cadastrados
+        </Text>
+
+        <Text style={styles.descricao}>
+          Treinos carregados diretamente da API e do MySQL.
+        </Text>
+      </View>
+
+      {carregando && (
+        <Text style={styles.mensagem}>
+          Carregando treinos...
+        </Text>
+      )}
+
+      {!!erro && (
+        <Text style={styles.mensagem}>
+          {erro}
+        </Text>
+      )}
+
+      {!carregando && !erro && treinosAPI.length === 0 && (
+        <Text style={styles.mensagem}>
+          Nenhum treino cadastrado.
+        </Text>
+      )}
+
+      {treinosAPI.map((treino) => (
+        <View key={treino.id} style={styles.card}>
+          <Text style={styles.grupo}>
+            {treino.categoria}
+          </Text>
+
+          <Text style={styles.nome}>
+            {treino.nome}
+          </Text>
+
+          <Text style={styles.duracao}>
+            {treino.duracao} minutos
+          </Text>
+
+          <View style={styles.divisor} />
+
+          <Text style={styles.exercicioTexto}>
+            {treino.descricao}
+          </Text>
         </View>
       ))}
     </ScrollView>
@@ -223,8 +302,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginRight: 10,
   },
-  exercicioTexto: {
+    exercicioTexto: {
     color: '#D5DFEC',
     fontSize: 14,
+  },
+
+  mensagem: {
+    color: '#A9B7CA',
+    fontSize: 14,
+    marginHorizontal: 22,
+    marginBottom: 18,
   },
 });
