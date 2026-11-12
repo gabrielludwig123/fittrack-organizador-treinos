@@ -171,3 +171,44 @@ Na Entrega 3, serão desenvolvidas as funcionalidades de cadastro e login de usu
 ## Desenvolvedor
 
 Projeto acadêmico — FitTrack, Entregas 1 e 2.
+
+## Entrega 3 — Autenticação JWT e permissões
+
+O FitTrack é um aplicativo de organização de treinos
+desenvolvido com React Native e Expo.
+
+### Tecnologias
+- React Native e Expo
+- Node.js e Express
+- MySQL
+- JWT
+- bcryptjs
+
+### Funcionalidades
+- Cadastro de usuários pela API
+- Login com autenticação JWT
+- Senhas protegidas com bcrypt
+- CRUD de treinos na API
+- Rotas protegidas por autenticação
+- Níveis de acesso: usuário e administrador
+- Consulta de treinos no aplicativo
+
+### Funcionamento
+O usuário realiza login e recebe um token JWT.
+Esse token é enviado nas requisições protegidas.
+
+A API valida o token e consulta os dados do usuário
+no banco MySQL para verificar suas permissões.
+
+Usuários comuns visualizam seus próprios treinos.
+Administradores podem visualizar todos os treinos.
+
+### Execução
+1. Configurar o MySQL e criar as tabelas.
+2. Configurar o arquivo .env do backend.
+3. Instalar as dependências com npm install.
+4. Iniciar o backend com node server.js.
+5. Iniciar o aplicativo com npx expo start.
+
+O arquivo .env contém informações privadas e
+não deve ser enviado ao GitHub.

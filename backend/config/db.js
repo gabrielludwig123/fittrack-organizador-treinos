@@ -1,6 +1,13 @@
 
 const mysql = require('mysql2/promise');
-require('dotenv').config();
+const path = require('path');
+const dotenv = require('dotenv');
+
+// Carrega o .env da pasta backend
+dotenv.config({
+  path: path.resolve(__dirname, '../.env'),
+  override: true
+});
 
 const db = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',

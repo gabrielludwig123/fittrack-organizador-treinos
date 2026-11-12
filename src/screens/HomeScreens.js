@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen({ navigation, route }) {
+  const { token, usuario } = route.params || {};
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -47,7 +48,7 @@ export default function HomeScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.botao}
-          onPress={() => navigation.navigate('Treinos')}
+         onPress={() => navigation.navigate('Treinos', { token, usuario })}
         >
           <View style={styles.botaoTexto}>
             <Text style={styles.botaoTitulo}>
@@ -62,7 +63,7 @@ export default function HomeScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.botao}
-          onPress={() => navigation.navigate('Perfil')}
+          onPress={() => navigation.navigate('Perfil', { usuario })}
         >
           <View style={styles.botaoTexto}>
             <Text style={styles.botaoTitulo}>
