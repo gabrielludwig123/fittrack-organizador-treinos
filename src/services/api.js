@@ -92,3 +92,28 @@ export async function excluirTreino(token, id) {
 
   return dados;
 }
+
+ // Cadastrar novo usuário
+export async function cadastrarUsuario(nome, email, senha) {
+  const resposta = await fetch(`${API_URL}/auth/cadastro`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      nome,
+      email,
+      senha,
+    }),
+  });
+
+  const dados = await resposta.json();
+
+  if (!resposta.ok) {
+    throw new Error(
+      dados.mensagem || 'Erro ao cadastrar usuário.'
+    );
+  }
+
+  return dados;
+}

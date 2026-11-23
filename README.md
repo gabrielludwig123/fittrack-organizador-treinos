@@ -2,126 +2,108 @@
 
 ## Sobre o projeto
 
-O FitTrack é um aplicativo mobile desenvolvido para ajudar os usuários a organizar e acompanhar seus treinos físicos de maneira simples e prática.
-
-O projeto foi desenvolvido como atividade acadêmica, utilizando React Native, Expo, Node.js, Express e MySQL.
+O FitTrack é um aplicativo mobile desenvolvido para ajudar usuários a organizar e gerenciar seus treinos físicos. O projeto foi criado como atividade acadêmica, utilizando React Native, Expo, Node.js, Express e MySQL.
 
 ## Objetivo
 
-Facilitar a organização dos exercícios físicos, permitindo consultar treinos e, futuramente, cadastrar, editar e excluir treinos personalizados.
+Facilitar a organização dos treinos, permitindo cadastrar, consultar, editar e excluir exercícios de forma prática e segura.
 
 ## Tecnologias utilizadas
 
-- React Native
-- Expo
+- React Native e Expo
+- React Navigation
 - JavaScript
-- Node.js
-- Express
+- Node.js e Express
 - MySQL
-- API REST
-- Fetch API
+- API REST e Fetch API
+- JWT (JSON Web Token)
+- bcryptjs
 - Git e GitHub
+
+## Funcionalidades
+
+- Cadastro de usuários.
+- Login com autenticação JWT.
+- Proteção de senhas utilizando bcrypt.
+- Dois níveis de acesso: usuário e administrador.
+- Rotas protegidas por Bearer Token.
+- Cadastro, consulta, edição e exclusão de treinos.
+- Controle de permissões no backend.
+- Logout com retorno à tela de login.
 
 ## Telas do aplicativo
 
-- **Home:** apresenta a tela inicial e as informações do aplicativo.
-- **Treinos:** apresenta treinos de exemplo e consulta os treinos cadastrados no banco de dados.
-- **Perfil:** apresenta a área de informações do usuário.
+**Login e cadastro:** permite criar uma conta e entrar no sistema.
 
-## Requisitos funcionais
+**Home:** apresenta o aplicativo e permite acessar as outras telas.
 
-- RF01 — Permitir a navegação entre as telas do aplicativo.
-- RF02 — Exibir treinos organizados por grupos musculares.
-- RF03 — Consultar os treinos cadastrados no MySQL.
-- RF04 — Permitir o cadastro de novos treinos pela API.
-- RF05 — Exibir nome, descrição, categoria e duração dos treinos.
-- RF06 — Permitir futuramente a edição e exclusão de treinos.
-- RF07 — Implementar futuramente cadastro e login de usuários.
-- RF08 — Implementar autenticação JWT e níveis de permissão nas próximas entregas.
+**Treinos:** permite cadastrar, consultar, editar e excluir treinos.
 
-## Fluxo do aplicativo
+**Perfil:** apresenta informações do usuário e disponibiliza a opção de logout.
 
-Home → Treinos → Consulta dos treinos
+## Banco de dados
 
-Home → Perfil
+Banco: `fittrack`
 
-Na tela de Treinos, o aplicativo utiliza `fetch()` para consultar a API Express, que acessa o banco MySQL e retorna os dados em JSON.
+**Tabela usuarios:** armazena os dados dos usuários, incluindo identificador, nome, e-mail, senha protegida por hash e nível de acesso.
 
-## Estrutura do banco de dados
+**Tabela treinos:** armazena os treinos cadastrados, incluindo identificador, nome, descrição, categoria, duração e identificador do usuário responsável.
 
-Banco de dados: `fittrack`
-
-Tabela principal: `treinos`
-
-| Campo | Tipo | Descrição |
-|---|---|---|
-| id | INT | Identificador do treino, chave primária |
-| nome | VARCHAR(100) | Nome do treino |
-| descricao | TEXT | Descrição dos exercícios |
-| categoria | VARCHAR(50) | Categoria do treino |
-| duracao | INT | Duração em minutos |
-| criado_em | TIMESTAMP | Data e hora de criação |
-
-O arquivo `backend/database.sql` contém o script de criação do banco e da tabela.
+O arquivo `backend/database.sql` contém o script SQL do projeto e deve ser mantido atualizado com a estrutura utilizada.
 
 ## Rotas da API
 
-### GET /treinos
+| Método | Rota | Função |
+|---|---|---|
+| POST | /auth/cadastro | Cadastrar usuário |
+| POST | /auth/login | Realizar login |
+| GET | /treinos | Consultar treinos |
+| POST | /treinos | Cadastrar treino |
+| PUT | /treinos/:id | Atualizar treino |
+| DELETE | /treinos/:id | Excluir treino |
 
-Consulta todos os treinos cadastrados no MySQL e retorna os resultados em JSON.
+As rotas de treinos exigem autenticação JWT.
 
-### POST /treinos
+## Níveis de acesso
 
-Permite cadastrar um novo treino no banco de dados.
+**Usuário comum:** pode cadastrar treinos e consultar, editar e excluir apenas seus próprios registros.
 
-Exemplo de requisição:
+**Administrador:** pode consultar, editar e excluir treinos de todos os usuários, além de cadastrar seus próprios treinos.
 
-```json
-{
-  "nome": "Treino de Peito",
-  "descricao": "Supino reto e crucifixo",
-  "categoria": "Musculacao",
-  "duracao": 60
-}
-```
+O controle de permissões é realizado no backend.
 
-As rotas GET e POST fazem parte da primeira integração do projeto. As operações PUT e DELETE estão previstas para a próxima entrega.
+## Autenticação e segurança
 
-## Níveis de usuário e permissões previstas
+O sistema utiliza bcryptjs para proteger as senhas armazenadas no banco de dados.
 
-**Usuário comum:**
-- Consultar treinos.
-- Gerenciar seus próprios treinos.
-- Visualizar e atualizar seu perfil.
+Após o login, a API gera um token JWT contendo o identificador e o nível do usuário.
 
-**Administrador:**
-- Gerenciar os treinos cadastrados.
-- Administrar usuários.
-- Controlar permissões do sistema.
+O token é enviado nas requisições protegidas utilizando o cabeçalho `Authorization: Bearer TOKEN`.
 
-Essas funcionalidades serão implementadas nas próximas etapas, utilizando autenticação JWT e rotas protegidas.
+O middleware verifica a validade do token antes de permitir o acesso às rotas protegidas.
 
-## Como executar o projeto
+## Como executar
 
-### 1. Configurar o banco de dados
+### 1. Configurar o banco
 
-- Instalar o MySQL.
-- Executar o arquivo `backend/database.sql`.
-- Configurar as variáveis de ambiente do backend em um arquivo `.env`:
+Instalar o MySQL e executar o script `backend/database.sql`.
+
+### 2. Configurar o backend
+
+Criar um arquivo `.env` dentro da pasta `backend` com as variáveis:
 
 ```env
 DB_HOST=localhost
 DB_USER=seu_usuario
 DB_PASSWORD=sua_senha
 DB_NAME=fittrack
+JWT_SECRET=defina_uma_chave_secreta_forte
 PORT=3000
 ```
 
-O arquivo `.env` não deve ser enviado ao GitHub.
+Não enviar o arquivo `.env` ao GitHub.
 
-### 2. Iniciar o backend
-
-No terminal:
+### 3. Iniciar o backend
 
 ```bash
 cd backend
@@ -129,86 +111,61 @@ npm install
 node server.js
 ```
 
-O servidor será iniciado na porta 3000.
+### 4. Iniciar o aplicativo
 
-### 3. Iniciar o aplicativo
-
-Em outro terminal, na pasta principal do aplicativo:
+Na pasta principal do aplicativo:
 
 ```bash
 npm install
 npx expo start
 ```
 
-Para utilizar o aplicativo em um celular, o endereço da API em `src/services/api.js` deverá ser configurado com o IP local do computador que está executando o backend. O celular e o computador devem estar na mesma rede.
+Configurar o endereço da API em `src/services/api.js` com o IP do computador que executa o backend.
 
 ## Evolução do projeto
 
-### Entrega 1
+### Entrega 1 — Estrutura inicial
 
-- Criação do projeto React Native com Expo.
-- Desenvolvimento das telas Home, Treinos e Perfil.
-- Organização inicial dos arquivos.
+- Criação do projeto Expo.
+- Desenvolvimento das primeiras telas.
 - Configuração da navegação.
 - Criação do repositório GitHub.
 
-### Entrega 2
+### Entrega 2 — Banco de dados e API
 
-- Criação do banco de dados MySQL.
-- Criação da tabela de treinos.
-- Desenvolvimento do backend com Node.js e Express.
-- Configuração da conexão com o banco.
-- Implementação das rotas GET e POST.
-- Integração do React Native com a API utilizando `fetch()`.
-- Exibição dos treinos cadastrados no banco.
-- Criação do script SQL.
-- Atualização da documentação.
+- Criação do banco MySQL.
+- Desenvolvimento da API Express.
+- Implementação das rotas iniciais.
+- Integração do aplicativo com a API.
 
-## Próximas etapas
+### Entrega 3 — JWT e CRUD
 
-Na Entrega 3, serão desenvolvidas as funcionalidades de cadastro e login de usuários, autenticação JWT, níveis de acesso, rotas protegidas e CRUD completo.
+- Cadastro e login de usuários no backend.
+- Senhas protegidas com bcrypt.
+- Geração e validação de JWT.
+- Implementação dos níveis de acesso.
+- Rotas protegidas.
+- CRUD completo no backend.
+
+### Entrega 4 — Finalização
+
+- Implementação da interface de cadastro de usuários.
+- Implementação das operações de CRUD na tela de treinos.
+- Adição do botão de logout.
+- Revisão da navegação e da interface.
+- Exportação do pacote JavaScript para Android realizada com sucesso.
+- Testes funcionais e geração do APK final ainda pendentes de confirmação.
+
+## Testes
+
+O backend foi testado com sucesso nas operações de login, consulta, cadastro, atualização e exclusão de treinos.
+
+A exportação do aplicativo para Android também foi concluída sem erros de empacotamento.
+
+Ainda é necessário validar as funcionalidades no aplicativo em execução, testar os níveis de acesso e confirmar a instalação e o funcionamento do APK final.
 
 ## Desenvolvedor
 
-Projeto acadêmico — FitTrack, Entregas 1 e 2.
+Projeto acadêmico — FitTrack — Organizador de Treinos.
 
-## Entrega 3 — Autenticação JWT e permissões
-
-O FitTrack é um aplicativo de organização de treinos
-desenvolvido com React Native e Expo.
-
-### Tecnologias
-- React Native e Expo
-- Node.js e Express
-- MySQL
-- JWT
-- bcryptjs
-
-### Funcionalidades
-- Cadastro de usuários pela API
-- Login com autenticação JWT
-- Senhas protegidas com bcrypt
-- CRUD de treinos na API
-- Rotas protegidas por autenticação
-- Níveis de acesso: usuário e administrador
-- Consulta de treinos no aplicativo
-
-### Funcionamento
-O usuário realiza login e recebe um token JWT.
-Esse token é enviado nas requisições protegidas.
-
-A API valida o token e consulta os dados do usuário
-no banco MySQL para verificar suas permissões.
-
-Usuários comuns visualizam seus próprios treinos.
-Administradores podem visualizar todos os treinos.
-
-### Execução
-1. Configurar o MySQL e criar as tabelas.
-2. Configurar o arquivo .env do backend.
-3. Instalar as dependências com npm install.
-4. Iniciar o backend com node server.js.
-5. Iniciar o aplicativo com npx expo start.
-
-O arquivo .env contém informações privadas e
-não deve ser enviado ao GitHub.
+Desenvolvido por Gabriel Ludwig.

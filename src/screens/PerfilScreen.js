@@ -5,9 +5,32 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 
-export default function PerfilScreen() {
+export default function PerfilScreen({ navigation, route }) {
+  const usuario = route.params?.usuario;
+
+  function sair() {
+    Alert.alert(
+      'Sair do FitTrack',
+      'Deseja realmente sair da sua conta?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sair',
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
+          },
+        },
+      ]
+    );
+  }
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -15,68 +38,46 @@ export default function PerfilScreen() {
           <Text style={styles.avatarTexto}>FT</Text>
         </View>
 
-        <Text style={styles.titulo}>Sobre o FitTrack</Text>
-
+        <Text style={styles.titulo}>Meu Perfil</Text>
         <Text style={styles.subtitulo}>
           Organização para evoluir.
         </Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.etiqueta}>NOSSA MISSÃO</Text>
+        <Text style={styles.etiqueta}>MINHA CONTA</Text>
+
+        <Text style={styles.cardTitulo}>
+          {usuario?.nome || 'Usuário FitTrack'}
+        </Text>
+
+        <Text style={styles.texto}>
+          Nível de acesso: {usuario?.nivel || 'Não informado'}
+        </Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.etiqueta}>SOBRE O FITTRACK</Text>
 
         <Text style={styles.cardTitulo}>
           Treinos mais organizados.
         </Text>
 
         <Text style={styles.texto}>
-          O FitTrack foi pensado para ajudar
-          pessoas a organizar seus exercícios e
-          visualizar sua rotina de treinos em
-          uma única aplicação.
+          O FitTrack ajuda você a organizar seus
+          exercícios, cadastrar treinos e acompanhar
+          sua rotina de atividades físicas.
         </Text>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.etiqueta}>O PROBLEMA</Text>
-
-        <Text style={styles.cardTitulo}>
-          Menos desorganização.
+      <TouchableOpacity
+        style={styles.botaoSair}
+        onPress={sair}
+      >
+        <Text style={styles.botaoTexto}>
+          SAIR DA CONTA
         </Text>
-
-        <Text style={styles.texto}>
-          Informações espalhadas e falta de
-          planejamento podem dificultar a
-          organização dos exercícios. O FitTrack
-          propõe reunir essas informações em
-          um ambiente simples.
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.etiqueta}>PRÓXIMAS ETAPAS</Text>
-
-        <Text style={styles.item}>
-          ✓ Cadastro de treinos
-        </Text>
-
-        <Text style={styles.item}>
-          ✓ Edição e exclusão de registros
-        </Text>
-
-        <Text style={styles.item}>
-          ✓ Cadastro e login de usuários
-        </Text>
-
-        <Text style={styles.item}>
-          ✓ Controle de acesso por perfil
-        </Text>
-
-        <Text style={styles.nota}>
-          Funcionalidades previstas, ainda não
-          implementadas nesta versão.
-        </Text>
-      </View>
+      </TouchableOpacity>
 
       <Text style={styles.rodape}>
         FITTRACK · SUA ROTINA, MAIS ORGANIZADA.
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
   },
   etiqueta: {
     color: '#8BE35D',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 'bold',
     letterSpacing: 2,
   },
@@ -150,16 +151,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 23,
   },
-  item: {
-    color: '#D5DFEC',
-    fontSize: 14,
-    marginTop: 13,
+  botaoSair: {
+    backgroundColor: '#542B36',
+    borderWidth: 1,
+    borderColor: '#A94455',
+    marginHorizontal: 20,
+    marginTop: 25,
+    padding: 17,
+    borderRadius: 12,
+    alignItems: 'center',
   },
-  nota: {
-    color: '#8D9CB0',
-    fontSize: 12,
-    lineHeight: 18,
-    marginTop: 15,
+  botaoTexto: {
+    color: '#FF9BA7',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
   rodape: {
     color: '#66768D',

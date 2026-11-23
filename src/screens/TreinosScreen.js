@@ -1,27 +1,41 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   ActivityIndicator,
   Alert,
 } from 'react-native';
 
-import { buscarTreinos } from '../services/api';
+import {
+  buscarTreinos,
+  cadastrarTreino,
+  atualizarTreino,
+  excluirTreino,
+} from '../services/api';
 
 export default function TreinosScreen({ route }) {
   const token = route.params?.token;
 
   const [treinos, setTreinos] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [salvando, setSalvando] = useState(false);
+  const [excluindoId, setExcluindoId] = useState(null);
+
+  const [editandoId, setEditandoId] = useState(null);
+  const [nome, setNome] = useState('');
+  const [descricao, setDescricao] = useState('');
+  const [categoria, setCategoria] = useState('');
+  const [duracao, setDuracao] = useState('');
 
   const carregarTreinos = useCallback(async () => {
     if (!token) {
       setCarregando(false);
-      Alert.alert('Erro', 'Token não encontrado. Faça login novamente.');
+      Alert.alert('Erro', 'Faça login novamente.');
       return;
     }
 
@@ -41,43 +55,240 @@ export default function TreinosScreen({ route }) {
     carregarTreinos();
   }, [carregarTreinos]);
 
-  return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.titulo}>MEUS TREINOS</Text>
+  function limparFormulario() {
+    setEditandoId(null);
+    setNome('');
+    setDescricao('');
+    setCategoria('');
+    setDuracao('');
+  }
 
+  function iniciarEdicao(treino) {
+    setEditandoId(treino.id);
+    setNome(treino.nome || '');
+    setDescricao(treino.descricao || '');
+    setCategoria(treino.categoria || '');
+    setDuracao(String(treino.duracao || ''));
+  }
+
+  async function salvarTreino() {
+    const minutos = Number(duracao.trim());
+
+    if (!nome.trim() || nome.trim().length > 100) {
+      Alert.alert('Atenção', 'Informe um nome de até 100 caracteres.');
+      return;
+    }
+
+    if (!Number.isInteger(minutos) || minutos <= 0) {
+      Alert.alert('Atenção', 'Informe uma duração válida em minutos.');
+      return;
+    }
+
+    if (!token || salvando) return;
+
+    const treino = {
+      nome: nome.trim(),
+      descricao: descricao.trim(),
+      categoria: categoria.trim(),
+      duracao: minutos,
+    };
+
+    setSalvando(true);
+
+    try {
+      if (editandoId !== null) {
+        await atualizarTreino(token, editandoId, treino);
+        Alert.alert('Sucesso', 'Treino atualizado!');
+      } else {
+        await cadastrarTreino(token, treino);
+        Alert.alert('Sucesso', 'Treino cadastrado!');
+      }
+
+      limparFormulario();
+      await carregarTreinos();
+    } catch (erro) {
+      Alert.alert('Erro', erro.message);
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  function confirmarExclusao(id) {
+    Alert.alert(
+      'Excluir treino',
+      'Tem certeza que deseja excluir este treino?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => removerTreino(id),
+        },
+      ]
+    );
+  }
+
+  async function removerTreino(id) {
+    if (!token || excluindoId !== null) return;
+
+    setExcluindoId(id);
+
+    try {
+      await excluirTreino(token, id);
+
+      if (editandoId === id) {
+        limparFormulario();
+      }
+
+      await carregarTreinos();
+      Alert.alert('Sucesso', 'Treino excluído!');
+    } catch (erro) {
+      Alert.alert('Erro', erro.message);
+    } finally {
+      setExcluindoId(null);
+    }
+  }
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.conteudo}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text style={styles.marca}>FITTRACK</Text>
+      <Text style={styles.titulo}>MEUS TREINOS</Text>
       <Text style={styles.subtitulo}>
-        Acompanhe seus treinos cadastrados.
+        Organize sua rotina e evolua a cada treino.
       </Text>
 
-      <TouchableOpacity
-        style={styles.botao}
-        onPress={carregarTreinos}
-      >
-        <Text style={styles.botaoTexto}>Atualizar treinos</Text>
-      </TouchableOpacity>
+      <View style={styles.formulario}>
+        <Text style={styles.formTitulo}>
+          {editandoId !== null
+            ? 'EDITAR TREINO'
+            : 'NOVO TREINO'}
+        </Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Nome do treino"
+          placeholderTextColor="#8291A5"
+          value={nome}
+          onChangeText={setNome}
+          maxLength={100}
+        />
+
+        <TextInput
+          style={[styles.input, styles.inputDescricao]}
+          placeholder="Descrição"
+          placeholderTextColor="#8291A5"
+          value={descricao}
+          onChangeText={setDescricao}
+          multiline
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Categoria (ex: Musculação)"
+          placeholderTextColor="#8291A5"
+          value={categoria}
+          onChangeText={setCategoria}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Duração em minutos"
+          placeholderTextColor="#8291A5"
+          value={duracao}
+          onChangeText={setDuracao}
+          keyboardType="numeric"
+        />
+
+        <TouchableOpacity
+          style={styles.botaoPrincipal}
+          onPress={salvarTreino}
+          disabled={salvando}
+        >
+          <Text style={styles.botaoPrincipalTexto}>
+            {salvando
+              ? 'SALVANDO...'
+              : editandoId !== null
+              ? 'SALVAR ALTERAÇÕES'
+              : '+ CADASTRAR TREINO'}
+          </Text>
+        </TouchableOpacity>
+
+        {editandoId !== null && (
+          <TouchableOpacity
+            style={styles.botaoCancelar}
+            onPress={limparFormulario}
+            disabled={salvando}
+          >
+            <Text style={styles.textoCancelar}>
+              Cancelar edição
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <View style={styles.cabecalhoLista}>
+        <Text style={styles.listaTitulo}>
+          TREINOS CADASTRADOS
+        </Text>
+
+        <TouchableOpacity onPress={carregarTreinos}>
+          <Text style={styles.atualizar}>Atualizar</Text>
+        </TouchableOpacity>
+      </View>
 
       {carregando ? (
         <ActivityIndicator size="large" color="#8BE35D" />
       ) : treinos.length === 0 ? (
         <Text style={styles.vazio}>
-          Nenhum treino encontrado.
+          Nenhum treino cadastrado ainda.
         </Text>
       ) : (
         treinos.map((treino) => (
           <View key={treino.id} style={styles.card}>
-            <Text style={styles.nome}>{treino.nome}</Text>
+            <Text style={styles.nome}>
+              {treino.nome}
+            </Text>
 
             <Text style={styles.descricao}>
               {treino.descricao || 'Sem descrição'}
             </Text>
 
-            <Text style={styles.detalhe}>
-              Categoria: {treino.categoria || 'Não informada'}
-            </Text>
+            <View style={styles.info}>
+              <Text style={styles.detalhe}>
+                {treino.categoria || 'Sem categoria'}
+              </Text>
 
-            <Text style={styles.detalhe}>
-              Duração: {treino.duracao || 'Não informada'}
-            </Text>
+              <Text style={styles.detalhe}>
+                {treino.duracao} min
+              </Text>
+            </View>
+
+            <View style={styles.acoes}>
+              <TouchableOpacity
+                style={styles.botaoEditar}
+                onPress={() => iniciarEdicao(treino)}
+              >
+                <Text style={styles.textoEditar}>
+                  EDITAR
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.botaoExcluir}
+                onPress={() => confirmarExclusao(treino.id)}
+                disabled={excluindoId !== null}
+              >
+                <Text style={styles.textoExcluir}>
+                  {excluindoId === treino.id
+                    ? 'EXCLUINDO...'
+                    : 'EXCLUIR'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ))
       )}
@@ -89,59 +300,150 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0B1220',
+  },
+  conteudo: {
     padding: 20,
+    paddingBottom: 50,
+  },
+  marca: {
+    color: '#8BE35D',
+    fontSize: 13,
+    fontWeight: 'bold',
+    letterSpacing: 3,
+    marginTop: 10,
   },
   titulo: {
-    color: '#8BE35D',
-    fontSize: 25,
+    color: '#FFFFFF',
+    fontSize: 28,
     fontWeight: 'bold',
-    marginTop: 15,
+    marginTop: 12,
   },
   subtitulo: {
     color: '#A9B7CA',
-    fontSize: 15,
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  botao: {
-    backgroundColor: '#8BE35D',
-    padding: 15,
-    borderRadius: 12,
-    alignItems: 'center',
+    fontSize: 14,
+    marginTop: 8,
     marginBottom: 25,
   },
-  botaoTexto: {
+  formulario: {
+    backgroundColor: '#17263A',
+    borderRadius: 18,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#30445B',
+    marginBottom: 30,
+  },
+  formTitulo: {
+    color: '#8BE35D',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: '#0B1220',
+    color: '#FFFFFF',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#30445B',
+    fontSize: 14,
+  },
+  inputDescricao: {
+    minHeight: 75,
+    textAlignVertical: 'top',
+  },
+  botaoPrincipal: {
+    backgroundColor: '#8BE35D',
+    borderRadius: 10,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  botaoPrincipalTexto: {
     color: '#0B1220',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  botaoCancelar: {
+    alignItems: 'center',
+    padding: 12,
+  },
+  textoCancelar: {
+    color: '#A9B7CA',
+  },
+  cabecalhoLista: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 18,
+  },
+  listaTitulo: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
     fontSize: 15,
+  },
+  atualizar: {
+    color: '#8BE35D',
     fontWeight: 'bold',
   },
   card: {
     backgroundColor: '#17263A',
-    borderColor: '#30445B',
-    borderWidth: 1,
-    borderRadius: 15,
+    borderRadius: 16,
     padding: 20,
     marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#30445B',
   },
   nome: {
     color: '#FFFFFF',
     fontSize: 19,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   descricao: {
     color: '#A9B7CA',
     fontSize: 14,
-    marginBottom: 12,
+    marginBottom: 15,
+  },
+  info: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   detalhe: {
     color: '#8BE35D',
     fontSize: 13,
-    marginTop: 5,
+    fontWeight: 'bold',
+  },
+  acoes: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  botaoEditar: {
+    flex: 1,
+    backgroundColor: '#30445B',
+    borderRadius: 10,
+    padding: 12,
+    alignItems: 'center',
+  },
+  textoEditar: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  botaoExcluir: {
+    flex: 1,
+    backgroundColor: '#542B36',
+    borderRadius: 10,
+    padding: 12,
+    alignItems: 'center',
+  },
+  textoExcluir: {
+    color: '#FF9BA7',
+    fontWeight: 'bold',
   },
   vazio: {
     color: '#A9B7CA',
     textAlign: 'center',
-    marginTop: 30,
+    marginTop: 25,
   },
 });
