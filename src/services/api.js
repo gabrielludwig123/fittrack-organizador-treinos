@@ -1,5 +1,9 @@
 
-const API_URL = 'http://172.20.134.196:3000';
+import { Platform } from 'react-native';
+
+const API_URL = Platform.OS === 'web'
+  ? 'http://localhost:3000'
+  : 'http://172.20.134.196:3000';
 
 // Realizar login
 export async function fazerLogin(email, senha) {
